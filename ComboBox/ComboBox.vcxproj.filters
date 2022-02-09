@@ -30,7 +30,7 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="sleet_weather_sunny_cloudy_1460.ico">
+    <Image Include="cloudyweather_cloud_inpart_day_wind_thunder_sunny_rain_darkness_nublad_1459.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
