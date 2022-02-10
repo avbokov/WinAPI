@@ -1,4 +1,4 @@
-#include<Windows.h>
+п»ї#include<Windows.h>
 #include<stdio.h>
 #include"resource.h"
 
@@ -42,11 +42,11 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			{
 				CHAR text[SIZE]{};
 				SendMessage(GetDlgItem(hwnd, IDC_LIST1), LB_GETTEXT, cursel, (LPARAM)text);
-				sprintf(buffer, "Вы выбрали элемент %d - %s", cursel, text);
+				sprintf(buffer, "Р’С‹ РІС‹Р±СЂР°Р»Рё СЌР»РµРјРµРЅС‚ %d - %s", cursel, text);
 			}
 			else 
 			{
-				sprintf(buffer, "Вы ничего не выбрали");
+				sprintf(buffer, "Р’С‹ РЅРёС‡РµРіРѕ РЅРµ РІС‹Р±СЂР°Р»Рё");
 			}
 			MessageBox(hwnd, buffer, "Info", MB_OK | MB_ICONINFORMATION);
 		}
