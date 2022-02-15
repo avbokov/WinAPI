@@ -7,6 +7,8 @@
 #define IDC_CURSOR1                     107
 #define IDC_CURSOR                      107
 
+#define IDC_TOOPTIP						1100
+
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
