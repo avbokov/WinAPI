@@ -9,7 +9,7 @@
 #pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #define IDC_STATIC_RESOLUTION	1000
 
-TOOLINFO g_toolItem = {0};
+TOOLINFO g_toolItem = { 0 };
 HWND g_hwndTrackingTT;
 BOOL g_TrackingMouse = FALSE;
 TRACKMOUSEEVENT tme = { sizeof(TRACKMOUSEEVENT) };
@@ -90,9 +90,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_CREATE:
 	{
 		// ToolTip - всплывающая подсказка:
-		InitCommonControls();	
+		InitCommonControls();
 		//CreateToolTipForRect(hwnd);
 		g_hwndTrackingTT = CreateTrackingTooltip(hwnd);
+		return TRUE;
 	}
 	break;
 	case WM_MOUSELEAVE:
@@ -101,7 +102,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		g_TrackingMouse = FALSE;
 		return FALSE;
 	}
-		break;
+	break;
 	case WM_MOUSEMOVE:
 	{
 		//CreateToolTipForRect(hwnd);
@@ -121,19 +122,19 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		newX = GET_X_LPARAM(lParam);
 		newY = GET_Y_LPARAM(lParam);
 
-		if (newX != oldX || newY != oldY)
+		if ((newX != oldX) || (newY != oldY))
 		{
 			oldX = newX;
 			oldY = newY;
 
-			CHAR coords[20]{};
+			CHAR coords[18]{};
 			sprintf(coords, "%dx%d", newX, newY);
 			g_toolItem.lpszText = coords;
-			SendMessage(g_hwndTrackingTT, TTM_GETTOOLINFO, 0, (LPARAM)&g_toolItem);
+			SendMessage(g_hwndTrackingTT, TTM_SETTOOLINFO, 0, (LPARAM)&g_toolItem);
 
 			POINT pt = { newX, newY };
 			ClientToScreen(hwnd, &pt);
-			SendMessage(g_hwndTrackingTT, TTM_TRACKPOSITION, 0, (LPARAM)MAKEWORD(pt.x, pt.y));
+			SendMessage(g_hwndTrackingTT, TTM_TRACKPOSITION, 0, (LPARAM)MAKELONG(pt.x + 20, pt.y - 20));
 		}
 		SendMessage(g_hwndTrackingTT, TTM_TRACKACTIVATE, (WPARAM)TRUE, (LPARAM)&g_toolItem);
 		return FALSE;
@@ -171,7 +172,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 VOID CreateToolTipForRect(HWND hwnd)
 {
 	HWND hwndTT = CreateWindowEx
-	(	
+	(
 		WS_EX_TOPMOST,
 		TOOLTIPS_CLASS,
 		"My first Tooltip",
@@ -233,5 +234,6 @@ HWND CreateTrackingTooltip(HWND hwnd)
 	g_toolItem.lpszText = (LPSTR)"Tracking tooltip";
 	g_toolItem.uId = (UINT_PTR)hwnd;
 	GetClientRect(hwnd, &g_toolItem.rect);
-	SendMessage(g_hwndTrackingTT, TTM_ADDTOOL, 0, (LPARAM)(LPTOOLINFO)&g_toolItem);
+	SendMessage(hwndTT, TTM_ADDTOOL, 0, (LPARAM)(LPTOOLINFO)&g_toolItem);
+	return hwndTT;
 }
