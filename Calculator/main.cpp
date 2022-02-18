@@ -1,5 +1,6 @@
 ﻿#define _CRT_SECURE_NO_WARNINGS
 #include<Windows.h>
+#include<stdio.h>
 #include"resource.h"
 
 CONST UINT start_x = 10;
@@ -9,6 +10,10 @@ CONST UINT interval = 2;		// интервал между кнопками
 
 CONST UINT WINDOW_WIDTH = 293;
 CONST UINT WINDOW_HEIGHT = 324;
+
+DOUBLE a, b;			// Операнды
+INT s;					// Sign - знак операции
+BOOL stored = FALSE;	// Показывает, результат уже сохранен или нет
 
 CONST CHAR g_szClassName[] = "Calculator";
 LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM(wParam), LPARAM(lParam));
@@ -184,23 +189,85 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM(wParam), LPARAM(lParam))
 			i_btn_size, i_btn_size * 2 + interval,
 			hwnd, (HMENU)(IDC_BTN_EQUAL), GetModuleHandle(NULL), NULL
 		);
+
+		/*CHAR sz_focus_window[256]{};
+		SendMessage(GetFocus(), WM_GETTEXT, 256, (LPARAM)sz_focus_window);
+		MessageBox(hwnd, _itoa((INT)GetFocus(), sz_focus_window, 10), "Info", MB_OK);*/
 	}
 	break;
 	case WM_COMMAND:
 	{
-		if (LOWORD(wParam) >= IDC_BTN_0 && LOWORD(wParam) <= IDC_BTN_9)
+		if (LOWORD(wParam) >= IDC_BTN_0 && LOWORD(wParam) <= IDC_BTN_9 || LOWORD(wParam) == IDC_BTN_POINT)
 		{
+			if (stored)
+			{
+				SendMessage(GetDlgItem(hwnd, IDC_EDIT), WM_SETTEXT, 0, (LPARAM)"");
+				stored = FALSE;
+			}
 			CONST INT SIZE = 256;
 			CHAR sz_buffer[SIZE]{};
 			HWND hEdit = GetDlgItem(hwnd, IDC_EDIT);
 			SendMessage(hEdit, WM_GETTEXT, SIZE, (LPARAM)sz_buffer);
+			if (LOWORD(wParam) == IDC_BTN_POINT && strchr(sz_buffer, '.'))break; // проверка на две точки
 			CHAR sz_digit[2] = {};
 			sz_digit[0] = LOWORD(wParam) - 1000 + 48;
 			strcat(sz_buffer, sz_digit);
 			SendMessage(hEdit, WM_SETTEXT, 0, (LPARAM)sz_buffer);
 		}
+		if (LOWORD(wParam) == IDC_BTN_CLEAR)
+		{
+			SendMessage(GetDlgItem(hwnd, IDC_EDIT), WM_SETTEXT, 0, (LPARAM)"");
+			a = b = 0;
+			s = 0;
+			stored = FALSE;
+		}
+
+		if (LOWORD(wParam) >= IDC_BTN_DIVISION && LOWORD(wParam) <= IDC_BTN_PLUS)
+		{
+			SendMessage(hwnd, WM_COMMAND, LOWORD(IDC_BTN_EQUAL), 0);
+			CONST INT SIZE = 256;
+			CHAR sz_buffer[SIZE]{};
+			SendMessage(GetDlgItem(hwnd, IDC_EDIT), WM_GETTEXT, SIZE, (LPARAM)sz_buffer);
+			a = strtod(sz_buffer, NULL);
+			s = LOWORD(wParam);
+			stored = TRUE;
+		}
+
+		if (LOWORD(wParam) == IDC_BTN_EQUAL)
+		{
+			CONST INT SIZE = 256;
+			CHAR sz_buffer[SIZE] = {};
+			HWND hEdit = GetDlgItem(hwnd, IDC_EDIT);
+			SendMessage(hEdit, WM_GETTEXT, SIZE, (LPARAM)sz_buffer);
+			b = strtod(sz_buffer, NULL);
+
+		switch (s)
+			{
+			case IDC_BTN_PLUS: a += b; break;
+			case IDC_BTN_MINUS: a -= b; break;
+			case IDC_BTN_MULTIPLICATION: a *= b; break;
+			case IDC_BTN_DIVISION: a /= b; break;
+			default: a = b;
+			}
+		sprintf(sz_buffer, "%f", a);
+		SendMessage(hEdit, WM_SETTEXT, 0, (LPARAM)sz_buffer);
+		s = 0;
+		stored = TRUE;
+		}
+
+		SetFocus(hwnd);
 	}
-		break;
+	break;
+	case WM_KEYDOWN:
+	{
+		if (LOWORD(wParam) >= '0' && LOWORD(wParam) <= '9')SendMessage(hwnd, WM_COMMAND, LOWORD(wParam) + 1000 - '0', 0);
+		switch (LOWORD(wParam))
+		{
+		case VK_OEM_PERIOD: SendMessage(hwnd, WM_COMMAND, IDC_BTN_POINT, 0); break;
+		case VK_ESCAPE: SendMessage(hwnd, WM_COMMAND, IDC_BTN_CLEAR, 0); break;
+		}
+	}
+	break;
 	case WM_CLOSE:
 		DestroyWindow(hwnd);
 		break;
