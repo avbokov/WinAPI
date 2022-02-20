@@ -14,9 +14,9 @@ HWND g_hwndTrackingTT;
 BOOL g_TrackingMouse = FALSE;
 TRACKMOUSEEVENT tme = { sizeof(TRACKMOUSEEVENT) };
 
-CONST CHAR g_szClassName[] = "MyWindowClass";
+CONST CHAR g_szClassName[] = "MyWindowClass";	//	имя класса. Объявили как глобальную константу (это не те классы, что в ООП).
 CONST CHAR g_szTitle[] = "My First Window";
-LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);	//	объявление процедуры окна, но уже LRESULT, а не BOOL.
 VOID CreateToolTipForRect(HWND hwnd);
 HWND CreateTrackingTooltip(HWND hwnd);
 
@@ -29,18 +29,23 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, IN
 	wc.cbWndExtra = 0;
 	wc.lpfnWndProc = WndProc;
 	wc.style = 0;
-	//wc.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON_EARTH));		// панель задач (из ресурса)
-	//wc.hIconSm = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON_LIGHTNING));	// основное окно (из ресурса)
-	wc.hIcon = (HICON)LoadImage(hInstance, "umbrella.ico", IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);	// панель задач (из файла)
-	wc.hIconSm = (HICON)LoadImage(hInstance, "school.ico", IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);	// основное окно (из файла)
-	wc.hCursor = LoadCursor(hInstance, MAKEINTRESOURCE(IDC_CURSOR));
+	//wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);								//	по умолчанию иконка на панели задач
+	//wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);								//	по умолчанию иконка в заголовке основного окна
+	//wc.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON_EARTH));			// панель задач (загрузка из ресурса)
+	//wc.hIconSm = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON_LIGHTNING));	// заголовок основного окна (загрузка из ресурса)
+	wc.hIcon = (HICON)LoadImage(hInstance, "umbrella.ico", IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);	// панель задач (загрузка из файла)
+	wc.hIconSm = (HICON)LoadImage(hInstance, "school.ico", IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);	// заголовок основного окна (загрузка из файла)
+	//wc.hCursor = LoadCursor(NULL, IDC_ARROW);									//	по умолчанию курсор окна
+	wc.hCursor = LoadCursor(hInstance, MAKEINTRESOURCE(IDC_CURSOR));			//	функция LoadCursor() тоже использует ресурс
 	wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
 	wc.hInstance = hInstance;
-	wc.lpszMenuName = NULL; // меня в этом окне не будет
-	wc.lpszClassName = g_szClassName;
-	if (!RegisterClassEx(&wc))
+	wc.lpszMenuName = NULL;														// меню в этом окне не будет
+	wc.lpszClassName = g_szClassName;											//	который объявили как глобальную константу вверху.
+
+	if (!RegisterClassEx(&wc))	//	проверка на регистрацию окна.
 	{
 		MessageBox(NULL, "Class registration failed", "Error", MB_OK | MB_ICONERROR);
+		return 0;
 	}
 
 	// 2) Создание окна:
@@ -51,43 +56,52 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, IN
 	INT window_start_x = screen_width / 8;
 	INT window_start_y = screen_height / 8;
 
-	HWND hwnd = CreateWindowEx
+	HWND hwnd = CreateWindowEx	//	CreateWindowEx() - создаёт окно и возвращает HWND этого окна, по которому к нему можно обратиться
 	(
-		WS_EX_CLIENTEDGE,
-		g_szClassName,			// имя класса окна
-		g_szTitle,			// заголовок окна
-		WS_OVERLAPPEDWINDOW,	// для главного окна программы всегда задаётся такой стиль
-		window_start_x, window_start_y,	// начальная позиция окна на экране
-		window_width, window_height,	// исходный размер окна
-		NULL,							// родительское окно отсутсвует
-		NULL,							// меня тоже отсутсвует
-		hInstance,						// EXE-файл окна
+		WS_EX_CLIENTEDGE,					// стиль окна (?)
+		g_szClassName,						// имя класса окна
+		g_szTitle,							// заголовок окна
+		WS_OVERLAPPEDWINDOW,				// для главного окна программы всегда задаётся такой стиль
+		//CW_USEDEFAULT, CW_USEDEFAULT,		// начальная позиция окна на экране
+		//CW_USEDEFAULT, CW_USEDEFAULT,		// исходный размер окна
+		window_start_x, window_start_y,		// начальная позиция окна на экране
+		window_width, window_height,		// исходный размер окна
+		NULL,								// родительское окно отсутсвует
+		NULL,								// меню тоже отсутсвует
+		hInstance,							// EXE-файл окна
 		NULL
 	);
-	if (hwnd == NULL)
+	if (hwnd == NULL)	//	проверка на создание окна.
 	{
 		MessageBox(NULL, "Window creation failed", "Error", MB_OK | MB_ICONERROR);
 		return 0;
 	}
-	ShowWindow(hwnd, nCmdShow);		// задаём режим отображения окна (развёрнуто на весь экранб свёрнуто на панель задач)
+	ShowWindow(hwnd, nCmdShow);		// задаём режим отображения окна (развёрнуто на весь экран, свёрнуто на панель задач и т.д.)
 	UpdateWindow(hwnd);				// прорисовка окна
 
-	// 3) Запсук цикла сообщений:
-	MSG msg;
+	// 3) Запуск цикла сообщений:
+	//	Вот это всё ниже (включая return) пока просто запомнить.
+	MSG msg;	
 	while (GetMessage(&msg, NULL, 0, 0) > 0)
 	{
 		TranslateMessage(&msg);
+		//	Преобразует сообщения виртуальных клавиш в символьные сообщения.
+		//	Символьные сообщения отправляются в очередь сообщений вызывающего потока,
+		//	чтобы быть прочитанными в следующий раз, когда поток вызовет функцию GetMessage или PeekMessage.
+
 		DispatchMessage(&msg);
+		//	Отправляет сообщение оконной процедуре. Обычно он используется для отправки сообщения, полученного функцией GetMessage.
 	}
 
 	return msg.wParam;
 }
 
+//	4 вхождения в такой процедуре (WM_CREATE, WM_COMMAND, WM_CLOSE, WM_DESTROY), в отличии от DIALOG.
 LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch (uMsg)
 	{
-	case WM_CREATE:
+	case WM_CREATE:	//	вместо INITDIALOG, тут будут создаваться разные элементы окна, инициализация проходить и всё такое
 	{
 		// ToolTip - всплывающая подсказка:
 		InitCommonControls();
@@ -159,12 +173,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	break;
 	case WM_CLOSE:
 		if (MessageBox(hwnd, "Вы действительно хотите выйти?", "Question", MB_YESNO | MB_ICONQUESTION) == IDYES)
-			DestroyWindow(hwnd);
+			DestroyWindow(hwnd);	//	закрытие окна.
 		break;
 	case WM_DESTROY:
-		PostQuitMessage(0);
+		PostQuitMessage(0);			//	закрытие окна.
 		break;
 	default: return DefWindowProc(hwnd, uMsg, wParam, lParam);
+	//	функция DefWindowProc() вызывает оконную процедуру по умолчанию, чтобы обеспечить обработку по умолчанию любых оконных
+	//	сообщений, которые приложение не обрабатывает. Эта функция гарантирует, что каждое сообщение будет обработано.
+	//	DefWindowProc вызывается с теми же параметрами, что и оконная процедура.
 	}
 	return 0;
 }
