@@ -1,7 +1,7 @@
 ﻿#define _CRT_SECURE_NO_WARNINGS
 #include<Windows.h>
 #include<windowsx.h>
-#include<stdio.h>
+#include<stdio.h>	//	чтобы работала функция sprintf()
 #include<CommCtrl.h>
 #include"resource.h"
 
@@ -49,12 +49,12 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, IN
 	}
 
 	// 2) Создание окна:
-	INT screen_width = GetSystemMetrics(SM_CXSCREEN);	// вычисляем размер экрана
-	INT screen_height = GetSystemMetrics(SM_CYSCREEN);	// вычисляем размер экрана
-	INT window_width = screen_width - screen_width / 4;
-	INT window_height = screen_height - screen_height / 4;
-	INT window_start_x = screen_width / 8;
-	INT window_start_y = screen_height / 8;
+	INT screen_width = GetSystemMetrics(SM_CXSCREEN);			// вычисляем размер экрана
+	INT screen_height = GetSystemMetrics(SM_CYSCREEN);			// вычисляем размер экрана
+	INT window_width = screen_width - screen_width / 4;			//	размер окна будет 3/4 от размера экрана
+	INT window_height = screen_height - screen_height / 4;		//	размер окна будет 3/4 от размера экрана
+	INT window_start_x = screen_width / 8;						//	начальная позиция окна чётко посередине экрана
+	INT window_start_y = screen_height / 8;						//	начальная позиция окна чётко посередине экрана
 
 	HWND hwnd = CreateWindowEx	//	CreateWindowEx() - создаёт окно и возвращает HWND этого окна, по которому к нему можно обратиться
 	(
@@ -156,23 +156,31 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	break;
 	case WM_COMMAND:
 		break;
+
+		//	Пересчёт размеров и позиции окна. Очень коротко и просто )) плюсом к case WM_MOVE.
 	case WM_SIZE:
+
+		//	Когда мы двигаем окно по экрану, в него отправляется сообщение WM_MOVE.
 	case WM_MOVE:
 	{
 		CONST INT SIZE = 256;
 		CHAR buffer[SIZE] = {};
-		RECT rect;	// прямоугольник
-		GetWindowRect(hwnd, &rect);
+
+		//	для того, чтобы узнать положение окна, нам нужна будет структура RECT
+		RECT rect;	// самы обычный прямоугольник
+		GetWindowRect(hwnd, &rect);	//	чтобы получить прямоугольник окна GetWindowRect(какого окна, куда сохранить прямоугольник)
 		int window_start_x = rect.left;
 		int window_start_y = rect.top;
 		int window_width = rect.right - rect.left;
 		int window_heigth = rect.bottom - rect.top;
 		sprintf(buffer, "%s - position: %dx%d, size: %dx%d", g_szTitle, window_start_x, window_start_y, window_width, window_heigth);
-		SendMessage(hwnd, WM_SETTEXT, 0, (LPARAM)buffer);
+		SendMessage(hwnd, WM_SETTEXT, 0, (LPARAM)buffer);	//	Отправляем сообщение WM_SETTEXT окну и в нём результат функции sprintf(),
+		//	записанный в buffer.
 	}
 	break;
 	case WM_CLOSE:
 		if (MessageBox(hwnd, "Вы действительно хотите выйти?", "Question", MB_YESNO | MB_ICONQUESTION) == IDYES)
+			//	Если окно вернуло IDYES (нажали на кнопку ДА), тогда отправляем сообщение DestroyWindow().
 			DestroyWindow(hwnd);	//	закрытие окна.
 		break;
 	case WM_DESTROY:
